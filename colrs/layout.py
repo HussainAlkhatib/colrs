@@ -156,7 +156,7 @@ class _LiveLayoutManager:
         for y in range(max_y + 1):
             line = ""
             # Find all segments for the current line and sort by x
-            line_segments = sorted([(x, content) for (x_pos, y_pos), content in content_map.items() if y_pos == y], key=lambda item: item[0])
+            line_segments = sorted([(x_pos, content) for (x_pos, y_pos), content in content_map.items() if y_pos == y], key=lambda item: item[0])
             
             current_x = 0
             for x, content in line_segments:

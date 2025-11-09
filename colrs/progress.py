@@ -40,10 +40,13 @@ def progress(
         # Choose bar color based on progress
         bar_color = "green" if percent > 0.8 else "yellow" if percent > 0.4 else "cyan"
         
-        # Process description for any inline color tags
-        processed_description = _process_text_for_printing(description)
+        # Construct the full string with all tags
+        full_line = f'{description} <{bar_color}>[{bar}]</> {percent:.0%} '
         
-        sys.stdout.write(f'\r{processed_description} <{bar_color}>[{bar}]</> {percent:.0%} ')
+        # Process the entire line for colors
+        processed_line = _process_text_for_printing(full_line)
+        
+        sys.stdout.write(f'\r{processed_line}')
         sys.stdout.flush()
     
     sys.stdout.write('\n')

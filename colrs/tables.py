@@ -1,5 +1,6 @@
 # colorara/colrs/tables.py
 
+from .magic import _magic_print
 import re
 
 def _strip_tags(text: str) -> str:
@@ -19,7 +20,7 @@ def table(headers: list, data: list[list], border_color: str = "white", header_c
     :param header_color: The color for the header text (e.g., "white,bg_blue").
     :param to_string: If True, returns the table as a string instead of printing it.
     """
-    if not headers or not data:
+    if not headers:
         return "" if to_string else None
 
     # Calculate column widths based on the longest item in each column (header or data)
@@ -48,12 +49,12 @@ def table(headers: list, data: list[list], border_color: str = "white", header_c
 
             if is_header and header_color:
                 # The closing tag for header should be specific to avoid breaking nested tags
-                cell_content = f" <{header_color}>{cell}{padding}</{header_color.split(',')[0]}> "
+                cell_content = f" <{header_color}>{cell}{padding}</> "
             else:
                 cell_content = f" {cell}{padding} "
             parts.append(cell_content)
 
-        row_str = f"<{border_color}>│</>".join(parts)
+        row_str = f"<{border_color}>│</>{f'<{border_color}>│</>'.join(parts)}"
         output_lines.append(row_str)
 
     # --- Build the table ---
@@ -68,4 +69,4 @@ def table(headers: list, data: list[list], border_color: str = "white", header_c
     if to_string:
         return final_output
     else:
-        print(final_output)
+        _magic_print(final_output)

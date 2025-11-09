@@ -48,41 +48,37 @@ def _process_text_for_printing(text: str, color: str = None, bg_color: str = Non
     Processes a string for printing, handling both inline color tags and
     overall coloring. If tags are found, they take precedence.
     """
-    # Regex to find color tags like <green>text</green> or <white,bg_blue>text</>
-    # It matches the opening tag, the content, and a closing tag which is either </> or a matching tag.
-    tag_regex = r"<([a-zA-Z0-9_,]+)>((?:.|\n)*?)(?:</>|</\1>)"
-    # Regex for action tags specifically
-    action_tag_regex = r"<action=([a-zA-Z0-9_]+)>"
+    # Regex to find the *innermost* color tag first.
+    # This is the key to handling nested tags correctly.
+    # It looks for a tag that does not contain any other tags inside it.
+    tag_regex = r"<([a-zA-Z0-9_,]+)>([^<>]*) (?:</>|</\1>)"
 
-    # A simpler check to see if tags might be present.
-    # This avoids running regex on every single string.
-    if "<" not in text:
+    # Recursively process tags from the inside out.
+    while re.search(tag_regex, text):
+        text = re.sub(tag_regex, _color_tag_replacer, text)
+
+    # After all tags are processed, apply the base color if any.
+    if color or bg_color:
         return colorize(text, color, bg_color)
+    
+    return text
 
-    # This replacer handles standard color tags
-    def color_replacer(match):
-        tags = match.group(1).lower().split(',')
-        inner_text = match.group(2)
-        
-        tag_color = None
-        tag_bg_color = None
-        
-        for tag in tags:
-            # Ignore action tags in this replacer
-            if tag.startswith('action='):
-                return match.group(0) # Return the original tag unchanged
+def _color_tag_replacer(match) -> str:
+    """Internal helper for re.sub to replace a matched tag with colored text."""
+    tags = match.group(1).lower().split(',')
+    inner_text = match.group(2)
+    
+    tag_color = None
+    tag_bg_color = None
+    
+    for tag in tags:
+        if tag.startswith('bg_'):
+            tag_bg_color = tag[3:]
+        else:
+            tag_color = tag
+            
+    return colorize(inner_text, tag_color, tag_bg_color)
 
-            if tag.startswith('bg_'):
-                tag_bg_color = tag[3:]
-            else:
-                tag_color = tag
-                
-        return colorize(inner_text, tag_color, tag_bg_color)
-
-    # Apply default color to the whole string first, then parse tags
-    # This is complex. Let's just color the untagged parts.
-    # A simpler approach for now: tags override the main color.    
-    return re.sub(tag_regex, color_replacer, text)
 
 def _strip_all_tags(text: str) -> str:
     """Strips all tags (color and action) for length calculation."""
