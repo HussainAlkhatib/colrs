@@ -230,10 +230,37 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+### 9. Theming System
+
+Customize the look and feel of your entire application from one central place. Define a theme dictionary and apply it with `set_theme()`. All components will automatically adapt.
+
+```python
+from colrs import act, unact, set_theme, Panel, menu
+
+act()
+
+# Define a custom "fire" theme
+fire_theme = {
+    "primary": "orange",
+    "border": "red",
+    "menu_selected": "yellow",
+    "panel_title_bg": "red"
+}
+
+# Apply it globally
+set_theme(fire_theme)
+
+# All subsequent components will use the new theme automatically!
+Panel("This panel will now have a red border.", title="Fire Theme")
+choice = menu(title="Options", choices=["Option 1", "Option 2"])
+
+unact()
+```
+
 ## Shortcuts / Aliases
 
 For faster coding, shorter aliases are available for many features:
-
+@@ -238,12 +282,27 @@
 | Full Name               | Alias        |
 | ----------------------- | ------------ |
 | `progress`              | `prog`       |
@@ -242,7 +269,24 @@ For faster coding, shorter aliases are available for many features:
 | `ActionTagManager`      | `ActionManager`|
 | `async_loading`         | `aloading`   |
 | `AsyncLive`             | `aLive`      |
+| `checkbox`              | `check`      |
+
+For power users who prefer maximum brevity, even shorter aliases are available:
+
+| Full Name      | Alias |
+| -------------- | ----- |
+| `loading`      | `lo`  |
+| `Live`         | `li`  |
+| `menu`         | `me`  |
+| `table`        | `tb`  |
+| `Panel`        | `pn`  |
+| `progress`     | `pr`  |
+| `checkbox`     | `chk` |
+| `Layout`       | `ly`  |
+| `set_theme`    | `sth` |
+| `get_theme`    | `gth` |
+| `LogHandler`   | `lh`  |
+| `ActionManager`| `am`  |
 
 ## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+Read LICENSE file.
