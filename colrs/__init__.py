@@ -4,7 +4,7 @@
 colrs - A simple and elegant way to color your terminal text.
 """
 
-__version__ = "0.2.7"
+__version__ = "0.3"
 
 # Initialize colorama to make ANSI codes work on Windows and to auto-reset colors.
 from colorama import init

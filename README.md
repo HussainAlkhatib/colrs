@@ -288,5 +288,13 @@ For power users who prefer maximum brevity, even shorter aliases are available:
 | `LogHandler`   | `lh`  |
 | `ActionManager`| `am`  |
 
+### Power User Import
+
+For quick access to all short aliases, you can use this import line:
+
+```python
+from colrs import act, unact, lo, alo, li, ali, me, chk, tb, pn, pr, sth, gth, ly, lh, am
+```
+
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
