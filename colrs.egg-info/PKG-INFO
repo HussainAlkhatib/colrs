@@ -1,0 +1,284 @@
+Metadata-Version: 2.4
+Name: colrs
+Version: 0.2.7
+Summary: A simple and elegant Python library for terminal text coloring.
+Home-page: https://github.com/HussainAlkhatib/colrs
+Author: hussain_syrer
+Author-email: h2311065@gmail.com
+Keywords: color terminal ansi text style coloring cli print input
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Terminals
+Classifier: Topic :: Utilities
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: colorama
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# `colrs` 🎨
+
+**A Python library for creating beautiful, interactive, and powerful terminal applications with radical simplicity.**
+
+[!License: MIT](https://opensource.org/licenses/MIT)
+[!PyPI version](https://badge.fury.io/py/colrs)
+
+`colrs` is more than just a coloring library. It's a full toolkit for building modern command-line interfaces. It takes a unique approach: instead of forcing you to learn new functions for everything, you activate it once, and your standard `print` and `input` functions become color-aware and super-powered.
+
+---
+
+## Philosophy
+
+The core idea is **absolute simplicity**. Activate the magic, write your code as you normally would, and let `colrs` handle the complexity.
+
+-   **Activate:** `act()`
+-   **Use `print` and `input` normally:** Add colors with tags or keyword arguments.
+-   **Build UIs:** Use powerful components like `loading`, `progress`, `table`, `menu`, and `Live` displays.
+-   **Deactivate:** `unact()`
+
+## Installation
+
+Install from PyPI using pip. `colorama` is the only dependency and is installed automatically.
+
+```bash
+pip install colrs
+```
+
+## Core Concept: `act()` and `unact()`
+
+This is the heart of the library. Wrap the interactive part of your application within `act()` and `unact()` to enable all features.
+
+```python
+from colrs import act, unact
+
+print("This is a normal, default print.")
+
+# Activate the magic
+act()
+
+print("This print is now <green>super-powered</>!", color="cyan")
+name = input("What's your name? ", color="yellow", inp_color="magenta")
+print(f"Hello, <bold>{name}</>!")
+
+# Deactivate to return to normal
+unact()
+
+print("And we're back to normal.")
+```
+
+---
+
+## Features
+
+### 1. Enhanced `print()`
+
+Once `act()` is called, `print()` understands inline color tags and keyword arguments.
+
+```python
+from colrs import act, unact
+
+act()
+# Keyword arguments
+print("This is red.", color="red")
+print("This is blue on a yellow background.", color="blue", bg_color="yellow")
+
+# Inline tags (close with matching tag or generic </>)
+print("This is a <green>green text</> using inline tags.")
+print("<yellow>This is yellow with <blue>blue text</blue> inside.</yellow>")
+print("<white,bg_red> White text on a red background. </>")
+unact()
+```
+
+### 2. Smart `input()`
+
+The patched `input()` can color the prompt, the user's text, and even react to what the user types with `color_rules`.
+
+```python
+from colrs import act, unact
+
+act()
+# Color the prompt and the user's typing
+username = input("Username: ", color="yellow", inp_color="cyan")
+
+# Use rules to color the input *after* submission for feedback
+choice = input(
+    "Delete all files? (yes/no): ",
+    color="cyan",
+    color_rules={"yes": "red,bg_white", "no": "green"}
+)
+unact()
+```
+
+### 3. Loading Animations & Progress Bars
+
+Show activity with `loading()` for unknown durations or `prog()` for loops.
+
+```python
+from colrs import act, unact, loading, prog
+import time
+
+act()
+
+# For tasks with a known duration
+loading(duration=3, text="Syncing data...", style=7)
+
+# For tasks with an unknown duration, use a 'with' block
+with loading(text="Connecting to API...", style=2) as loader:
+    time.sleep(2)
+    loader.update("Downloading files...") # Update text on the fly
+    time.sleep(2)
+
+# For iterating over a sequence, use the progress bar
+for item in prog(range(200), description="<cyan>Processing items...</>"):
+    time.sleep(0.02)
+
+unact()
+```
+
+### 4. Data Tables
+
+Display data in a clean, formatted table that automatically calculates column widths and understands color tags.
+
+```python
+from colrs import act, unact, table
+
+act()
+headers = ["ID", "User", "Status", "Last Login"]
+data = [
+    ["101", "Hussain", "<green>Active</>", "2023-10-27 10:00"],
+    ["102", "Ali", "<yellow>Idle</>", "2023-10-27 09:15"],
+    ["104", "Zainab", "<red>Banned</>", "2023-10-26 15:30"]
+]
+table(headers, data, border_color="cyan", header_color="white,bg_cyan")
+unact()
+```
+
+### 5. Interactive Menus
+
+Prompt users with interactive menus for single or multiple selections.
+
+```python
+from colrs import act, unact, menu, check
+
+act()
+# Single-choice menu
+action = menu(
+    title="<yellow>What do you want to do?</yellow>",
+    choices=["Restart Service", "View Logs", "Exit"]
+)
+print(f"You chose: <green>{action}</green>")
+
+# Multi-choice checkbox menu
+features = check(
+    title="<cyan>Select features to install:</cyan>",
+    choices=["API", "Database", "Web UI", "Docs"]
+)
+print(f"Installing: <green>{', '.join(features)}</green>")
+unact()
+```
+
+### 6. Live Displays & Layouts
+
+Create complex, live-updating dashboards by dividing the terminal into a grid.
+
+```python
+from colrs import act, unact, Layout, table
+import time, random
+
+act()
+layout = Layout()
+layout.split_column(Layout(name="left", ratio=4), Layout(name="right", ratio=6))
+layout["right"].split_row(Layout(name="header"), Layout(name="stats", ratio=3))
+
+with layout.live(refresh_rate=1):
+    layout["header"].update("<bg_magenta,white> Real-time System Dashboard </>")
+    for i in range(5):
+        # Update left panel with a table
+        data = [["Task A", f"<green>OK</>"], ["Task B", f"<yellow>WARN</>"]]
+        layout["left"].update(table(headers=["Service", "Status"], data=data, to_string=True))
+        
+        # Update stats panel
+        cpu = random.randint(20, 90)
+        layout["stats"].update(f"CPU: <cyan>{cpu}%</> | Cycle: {i+1}")
+        time.sleep(1)
+unact()
+```
+
+### 7. Colored Logging
+
+Integrate with Python's standard `logging` module to automatically color your logs based on level.
+
+```python
+import logging
+from colrs import act, unact, LogHandler
+
+act()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(LogHandler()) # Just add our handler
+
+logger.debug("This is a debug message.")
+logger.info("System startup successful.")
+logger.warning("Disk space is running low.")
+logger.error("Failed to connect to the database.")
+logger.critical("Core service has crashed!")
+unact()
+```
+
+### 8. Async Support
+
+For modern `asyncio` applications, `colrs` provides non-blocking, asynchronous versions of its live components.
+
+```python
+import asyncio
+from colrs import act, unact, aloading, aLive
+
+async def main():
+    act()
+    async with aloading(text="Doing async work...", style=6):
+        await asyncio.sleep(3)
+    
+    async with aLive() as live:
+        for i in range(5):
+            live.update(f"Async Counter: <green>{i}</green>")
+            await asyncio.sleep(1)
+    unact()
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Shortcuts / Aliases
+
+For faster coding, shorter aliases are available for many features:
+
+| Full Name               | Alias        |
+| ----------------------- | ------------ |
+| `progress`              | `prog`       |
+| `checkbox`              | `check`      |
+| `ColorizingStreamHandler` | `LogHandler` |
+| `ActionTagManager`      | `ActionManager`|
+| `async_loading`         | `aloading`   |
+| `AsyncLive`             | `aLive`      |
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
