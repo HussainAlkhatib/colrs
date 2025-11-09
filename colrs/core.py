@@ -48,35 +48,21 @@ def _process_text_for_printing(text: str, color: str = None, bg_color: str = Non
     Processes a string for printing, handling both inline color tags and
     overall coloring. If tags are found, they take precedence.
     """
-    # This regex finds a tag, its content, and a closing tag.
-    # The `.*?` is a non-greedy match, which is crucial for handling
-    # nested and multiple tags correctly. It finds the *first* possible
-    # closing tag, allowing for recursive processing.
-    tag_regex = r"<([a-zA-Z0-9_,]+)>((?:.|\n)*?)(?:</>|</\1>)"
+    # This regex finds the *innermost* tag, which is a tag that contains no other tags.
+    # This is the key to correctly processing nested tags from the inside out.
+    innermost_tag_regex = r"<([a-zA-Z0-9_,]+)>([^<>]*?)(?:</>|</\1>)"
     
-    # This is a more robust, parser-like approach.
-    parts = []
-    last_end = 0
-    for match in re.finditer(tag_regex, text):
-        # 1. Add the text before the current tag
-        parts.append(colorize(text[last_end:match.start()], color, bg_color))
-        
-        # 2. Process and add the content of the tag itself
-        parts.append(_color_tag_replacer(match, base_color=color, base_bg=bg_color))
-        
-        last_end = match.end()
+    # Keep processing the innermost tags until no tags are left.
+    while re.search(innermost_tag_regex, text):
+        text = re.sub(innermost_tag_regex, _color_tag_replacer, text)
 
-    # 3. Add any remaining text after the last tag
-    parts.append(colorize(text[last_end:], color, bg_color))
-    
-    return "".join(parts)
+    # After all tags are resolved, apply the base color to the entire string.
+    return colorize(text, color, bg_color)
 
-def _color_tag_replacer(match, base_color=None, base_bg=None) -> str:
+def _color_tag_replacer(match) -> str:
     """Internal helper for re.sub to replace a matched tag with colored text."""
     tags = match.group(1).lower().split(',')
-    # Recursively process the inner text as well, in case of nesting.
-    # Pass the base colors to the recursive call
-    inner_text = _process_text_for_printing(match.group(2), base_color, base_bg)
+    inner_text = match.group(2)
     
     tag_color = None
     tag_bg_color = None
