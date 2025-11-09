@@ -48,12 +48,13 @@ def _process_text_for_printing(text: str, color: str = None, bg_color: str = Non
     Processes a string for printing, handling both inline color tags and
     overall coloring. If tags are found, they take precedence.
     """
-    # Regex to find the *innermost* color tag first.
-    # This is the key to handling nested tags correctly.
-    # It looks for a tag that does not contain any other tags inside it.
-    tag_regex = r"<([a-zA-Z0-9_,]+)>([^<>]*) (?:</>|</\1>)"
+    # This regex finds a tag, its content, and a closing tag.
+    # The `.*?` is a non-greedy match, which is crucial for handling
+    # nested and multiple tags correctly. It finds the *first* possible
+    # closing tag, allowing for recursive processing.
+    tag_regex = r"<([a-zA-Z0-9_,]+)>((?:.|\n)*?)(?:</>|</\1>)"
 
-    # Recursively process tags from the inside out.
+    # Recursively process tags. This handles nested tags correctly.
     while re.search(tag_regex, text):
         text = re.sub(tag_regex, _color_tag_replacer, text)
 
@@ -66,7 +67,8 @@ def _process_text_for_printing(text: str, color: str = None, bg_color: str = Non
 def _color_tag_replacer(match) -> str:
     """Internal helper for re.sub to replace a matched tag with colored text."""
     tags = match.group(1).lower().split(',')
-    inner_text = match.group(2)
+    # Recursively process the inner text as well, in case of nesting.
+    inner_text = _process_text_for_printing(match.group(2))
     
     tag_color = None
     tag_bg_color = None
@@ -78,7 +80,6 @@ def _color_tag_replacer(match) -> str:
             tag_color = tag
             
     return colorize(inner_text, tag_color, tag_bg_color)
-
 
 def _strip_all_tags(text: str) -> str:
     """Strips all tags (color and action) for length calculation."""
