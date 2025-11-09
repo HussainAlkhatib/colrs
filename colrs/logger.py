@@ -1,6 +1,7 @@
 # colorara/colrs/logger.py
 
 import logging
+from .magic import _magic_print
 
 class ColorizingStreamHandler(logging.StreamHandler):
     """
@@ -24,17 +25,23 @@ class ColorizingStreamHandler(logging.StreamHandler):
         
         self.level_colors = default_colors
 
+    def emit(self, record):
+        """
+        Overrides the default emit to use our color-processing print function.
+        """
+        try:
+            msg = self.format(record)
+            _magic_print(msg, end=self.terminator)
+            self.flush()
+        except Exception:
+            self.handleError(record)
+
     def format(self, record):
-        # Get the formatted message from the base class formatter
         message = super().format(record)
         
-        # Get the color for the current log level
         level_color = self.level_colors.get(record.levelno)
         
-        # Wrap the entire message in the level's color tag
         if level_color:
-            # We add the color tag, and our patched print() will handle it
-            # The closing tag </ > is important to reset color for subsequent prints
             message = f"<{level_color}>{message}</>"
         
         return message
