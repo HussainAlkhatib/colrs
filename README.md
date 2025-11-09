@@ -289,4 +289,4 @@ For power users who prefer maximum brevity, even shorter aliases are available:
 | `ActionManager`| `am`  |
 
 ## License
-Read LICENSE file.
+This project is licensed under the MIT License. See the LICENSE file for details.
