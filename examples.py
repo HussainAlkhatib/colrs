@@ -13,7 +13,7 @@ import asyncio
 # Import all the necessary components from the library
 from colrs import (
     act, unact, loading, prog, table, menu, check, Layout, LogHandler,
-    aloading, aLive, set_theme, Panel
+    aloading, aLive, set_theme, Panel, ActionManager
 )
 
 def wait_for_enter():
@@ -168,6 +168,26 @@ def example_theming():
     set_theme({"primary": "cyan", "border": "white", "menu_selected": "cyan", "panel_title_bg": "cyan"})
     unact()
 
+def example_action_tags():
+    """Demonstrates the clickable ActionTagManager."""
+    print("\n--- 12. Clickable Actions (Mouse Support) ---")
+    act()
+
+    def show_status():
+        return "System status: <green>OK</>. Click <action=shutdown>here</action> to shut down."
+
+    def shutdown_system():
+        return "<red,bg_white> SHUTDOWN INITIATED! </>"
+
+    actions = { "status": show_status, "shutdown": shutdown_system }
+
+    print("Click on the underlined words with your mouse.")
+    print("This demo will automatically exit after 15 seconds.")
+
+    with ActionManager(actions, initial_text="Click <action=status>here</action> to check system status."):
+        time.sleep(15)
+    unact()
+
 if __name__ == "__main__":
     example_core_concept(); wait_for_enter()
     example_enhanced_print(); wait_for_enter()
@@ -180,4 +200,5 @@ if __name__ == "__main__":
     example_logging(); wait_for_enter()
     asyncio.run(example_async_support()); wait_for_enter()
     example_theming()
+    example_action_tags() # This is the last example, no need for wait_for_enter()
     act(); print("\n<green,bg_black> All examples finished. </>"); unact()

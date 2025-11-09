@@ -35,6 +35,13 @@ def colorize(text: str, color: str = None, bg_color: str = None) -> str:
     if not isinstance(text, str):
         text = str(text)
         
+    # If the text already contains ANSI codes, we need to be smart.
+    # We replace the reset code with a "reset then re-apply current color" code.
+    # This ensures that nested colors correctly return to their parent color.
+    if (color or bg_color) and COLORS['reset'] in text:
+        reapply_code = f"{BG_COLORS.get(str(bg_color).lower(), '')}{COLORS.get(str(color).lower(), '')}"
+        return text.replace(COLORS['reset'], f'{COLORS["reset"]}{reapply_code}')
+
     color_code = COLORS.get(str(color).lower()) if color else ""
     bg_color_code = BG_COLORS.get(str(bg_color).lower()) if bg_color else ""
 
@@ -48,40 +55,46 @@ def _process_text_for_printing(text: str, color: str = None, bg_color: str = Non
     Processes a string for printing, handling both inline color tags and
     overall coloring. If tags are found, they take precedence.
     """
-    # This regex finds the *innermost* tag, which is a tag that contains no other tags.
-    # This is the key to correctly processing nested tags from the inside out.
-    innermost_tag_regex = r"<([a-zA-Z0-9_,]+)>([^<>]*?)(?:</>|</\1>)"
+    # This regex finds the *first* top-level tag. The non-greedy `.*?` is crucial.
+    tag_regex = r"<([a-zA-Z0-9_,]+)>((?:.|\n)*?)(?:</>|</\1>)"
     
-    # Keep processing the innermost tags until no tags are left.
-    while re.search(innermost_tag_regex, text):
-        text = re.sub(innermost_tag_regex, _color_tag_replacer, text)
+    match = re.search(tag_regex, text)
+    
+    # If no tags are found in the text, just colorize the whole thing and return.
+    if not match:
+        return colorize(text, color, bg_color)
 
-    # After all tags are resolved, apply the base color to the entire string.
-    return colorize(text, color, bg_color)
-
-def _color_tag_replacer(match) -> str:
-    """Internal helper for re.sub to replace a matched tag with colored text."""
+    # If tags are found, we build the string piece by piece.
+    parts = []
+    
+    # 1. Process the part of the string *before* the first tag.
+    # This part inherits the base color.
+    pre_match_text = text[:match.start()]
+    parts.append(colorize(pre_match_text, color, bg_color))
+    
+    # 2. Process the content *inside* the tag.
+    # This is the recursive step. The content of the tag is processed,
+    # and the tag's color becomes the new base color for that content.
+    tag_content = match.group(2)
     tags = match.group(1).lower().split(',')
-    inner_text = match.group(2)
+    tag_color = next((t for t in tags if not t.startswith('bg_')), None)
+    tag_bg_color = next((t[3:] for t in tags if t.startswith('bg_')), None)
     
-    tag_color = None
-    tag_bg_color = None
-    
-    for tag in tags:
-        if tag.startswith('bg_'):
-            tag_bg_color = tag[3:]
-        else:
-            tag_color = tag
-            
-    return colorize(inner_text, tag_color, tag_bg_color)
+    # The crucial change: The inner content is processed, and then the result
+    # is colored by the *outer* color. This ensures the parent color "wraps"
+    # the child color correctly.
+    inner_processed = _process_text_for_printing(tag_content, tag_color, tag_bg_color)
+    parts.append(colorize(inner_processed, color, bg_color))
 
+    # 3. Process the part of the string *after* the tag.
+    # This part also inherits the original base color.
+    parts.append(_process_text_for_printing(text[match.end():], color, bg_color))
+    
+    return "".join(parts)
 def _strip_all_tags(text: str) -> str:
     """Strips all tags (color and action) for length calculation."""
-    # First, handle the complex tags like <green>text</>
-    text = re.sub(r"<([a-zA-Z0-9_,=]+)>((?:.|\n)*?)(?:</>|</\1>)", r"\2", text)
-    # Then, handle any remaining simple tags
-    text = re.sub(r"<[^>]+>", "", text)
-    return text
+    # A simple regex to remove all tags for length calculation.
+    return re.sub(r"<[^>]+>", "", text)
 
 def _find_actions(text: str) -> list[tuple[str, str]]:
     """Finds all action tags and their content in a string."""

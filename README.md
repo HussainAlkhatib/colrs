@@ -256,6 +256,35 @@ choice = menu(title="Options", choices=["Option 1", "Option 2"])
 
 unact()
 ```
+## 7. Clickable Actions (Mouse Support)
+
+Transform your terminal application into an interactive experience with clickable actions. The `ActionManager` allows you to define functions that are triggered when a user clicks on specific text with their mouse.
+
+**Note:** This feature requires a modern terminal that supports mouse events (e.g., Windows Terminal, GNOME Terminal, iTerm2).
+
+```python
+from colrs import act, unact, ActionManager
+import time
+
+act()
+
+# 1. Define the functions for your actions
+def show_status():
+    return "System status: <green>OK</>. Click <action=shutdown>here</action> to shut down."
+
+def shutdown_system():
+    return "<red,bg_white> SHUTDOWN INITIATED! </>"
+
+# 2. Map action names (from tags) to functions
+actions = { "status": show_status, "shutdown": shutdown_system }
+
+print("Click on the underlined words. This demo will exit in 10 seconds.")
+
+with ActionManager(actions, initial_text="Click <action=status>here</action> to check status."):
+    time.sleep(10) # Keep the manager active to listen for clicks
+
+unact()
+```
 
 ## Shortcuts / Aliases
 

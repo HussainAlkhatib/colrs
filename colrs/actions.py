@@ -7,6 +7,7 @@ from contextlib import contextmanager
 
 from .menus import get_key, hide_cursor, show_cursor
 from .core import _process_text_for_printing, _strip_all_tags
+from .theme import get_theme
 
 def _enable_mouse_tracking():
     """Enables mouse tracking in the terminal."""
@@ -23,10 +24,11 @@ class ActionTagManager:
     A context manager to handle interactive action tags in the terminal.
     """
     def __init__(self, actions: dict, initial_text: str = ""):
+        self.theme = get_theme()
         self.actions = actions
         self.text = initial_text
-        self._action_map = []
-        self._stop_event = threading.Event()
+        self._action_map = {} # Using a dict: {(x, y): action_name}
+        self._stop_event = threading.Event() # To safely stop the listener thread
         self._thread = None
         self.feedback = ""
 
@@ -37,78 +39,87 @@ class ActionTagManager:
 
     def _render(self):
         """Renders the text and maps out action tag coordinates."""
+        from .menus import move_up
+        
         self._action_map.clear()
+        sys.stdout.write("\033[H\033[J") # Clear screen and move to home
         
-        # Process colors first, but keep action tags
-        processed_text = _process_text_for_printing(self.text)
-        
-        # Regex to find action tags and their content
+        # We need to manually walk through the text to calculate coordinates
+        # because print() doesn't return cursor position.
+        x, y = 0, 0
         action_regex = r"<action=([a-zA-Z0-9_]+)>((?:.|\n)*?)(?:</>|</action=\1>)"
-        
-        # We need to find the coordinates of each action
-        # This is a simplified approach. A real implementation would need a more robust layout engine.
-        # Let's assume single-line for now.
-        
-        # Print the text and store coordinates
-        current_pos = 0
         last_end = 0
         
-        # Clear screen and move to home
-        sys.stdout.write("\033[H\033[J")
-        
-        for match in re.finditer(action_regex, processed_text):
+        # First, replace action tags with a special, colored version
+        accent_color = self.theme.get("accent", "magenta")
+        def action_replacer(match):
+            # Replace <action=foo>bar</> with <accent,underline>bar</>
+            return f"<{accent_color},underline>{match.group(2)}</>"
+            
+        display_text = re.sub(action_regex, action_replacer, self.text)
+        processed_text = _process_text_for_printing(display_text)
+
+        # Now, find the coordinates of the original action tags
+        for match in re.finditer(action_regex, self.text):
             action_name = match.group(1)
             content = match.group(2)
             
-            # Print text before the match
-            pre_text = processed_text[last_end:match.start()]
-            sys.stdout.write(pre_text)
-            current_pos += len(_strip_all_tags(pre_text))
+            # Calculate the position of the action tag
+            pre_text_len = len(_strip_all_tags(self.text[last_end:match.start()]))
+            x += pre_text_len
             
-            # Store action coordinates
-            start_pos = current_pos + 1
-            end_pos = start_pos + len(_strip_all_tags(content))
-            self._action_map.append((start_pos, end_pos, action_name))
+            content_len = len(_strip_all_tags(content))
+            for i in range(content_len):
+                self._action_map[(x + i, y)] = action_name
             
-            # Print the action content (e.g., underlined)
-            sys.stdout.write(f"\033[4m{content}\033[0m")
-            current_pos = end_pos
-            
+            x += content_len
             last_end = match.end()
 
-        # Print remaining text
-        sys.stdout.write(processed_text[last_end:])
+        # Finally, print the fully processed text
+        sys.stdout.write(processed_text)
         sys.stdout.flush()
 
     def _listen(self):
         """Listens for mouse events in a separate thread."""
         while not self._stop_event.is_set():
-            key = get_key() # Re-using get_key for simplicity, needs enhancement for mouse
-            # This is a placeholder for real mouse event parsing, which is very complex.
-            # A real implementation would parse ANSI mouse codes like `\x1b[<0;col;row;M`
-            # For now, we'll simulate it with a key press.
-            if key == b'c': # Simulate a click
-                # In a real scenario, we'd get x, y from the mouse event
-                # Here we just trigger the first action as a demo
-                if self._action_map:
-                    _, _, action_name = self._action_map[0]
-                    if action_name in self.actions:
-                        result = self.actionsaction_name
-                        self.feedback = str(result)
-                        # Re-render to show feedback if needed (outside this simple loop)
+            # Read a sequence of bytes from stdin
+            # Mouse click: \x1b[<0;col;row;M
+            char = sys.stdin.read(1)
+            if char == '\x1b':
+                seq = sys.stdin.read(1)
+                if seq == '[':
+                    mouse_seq = sys.stdin.read(6)
+                    try:
+                        # Check for mouse click event
+                        if mouse_seq.endswith('M'):
+                            parts = mouse_seq.strip('<M').split(';')
+                            # event_type = int(parts[0])
+                            col = int(parts[1]) - 1 # Terminal columns are 1-based
+                            row = int(parts[2]) - 1 # Terminal rows are 1-based
+                            
+                            # Check if the click was on an action
+                            if (col, row) in self._action_map:
+                                action_name = self._action_map[(col, row)]
+                                if action_name in self.actions:
+                                    # Execute the action
+                                    result = self.actionsaction_name
+                                    self.update(str(result)) # Re-render with the result
+                    except (ValueError, IndexError):
+                        # Not a valid mouse sequence we can parse
+                        pass
 
     def __enter__(self):
         hide_cursor()
-        # _enable_mouse_tracking() # Disabled for now as parsing is complex
+        _enable_mouse_tracking()
         self._render()
-        # self._thread = threading.Thread(target=self._listen, daemon=True)
-        # self._thread.start()
+        self._thread = threading.Thread(target=self._listen, daemon=True)
+        self._thread.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # self._stop_event.set()
-        # if self._thread:
-        #     self._thread.join()
-        # _disable_mouse_tracking()
+        self._stop_event.set()
+        if self._thread:
+            self._thread.join(timeout=0.2)
+        _disable_mouse_tracking()
         show_cursor()
         print("\n") # New line after exit

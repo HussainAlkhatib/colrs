@@ -70,19 +70,16 @@ def menu(title: str, choices: list[str], selected_color: str = None, selected_pr
     try:
         while True:
             # Print the title
-            clear_line()
             # Process tags directly and use the original print to avoid conflicts
             builtins.print(_process_text_for_printing(title))
             
             # Print the choices
             for i, choice in enumerate(choices):
-                clear_line()
                 if i == selected_index:
                     line = f"<{selected_color}>{selected_prefix}{choice}</>"
                     builtins.print(_process_text_for_printing(line))
                 else:
-                    # We need to process tags here too, in case the choice itself has tags.
-                    builtins.print(_process_text_for_printing(f"{unselected_prefix}{choice}"))
+                    builtins.print(f"{unselected_prefix}{choice}")
             
             # Wait for a key press
             key = get_key()
