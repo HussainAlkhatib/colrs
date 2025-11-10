@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Theming System**: Global theming support with `set_theme()` (`sth`) and `get_theme()` (`gth`) to customize component colors from a central place.
 - **Smart `color_rules` for `input`**:
   - Now supports lists of words for a single color (e.g., `{"green": ["yes", "y"]}`).
+- **Geometric Shapes**: New `draw()` (`dw`) function to render basic geometric shapes (e.g., rectangles) in the terminal.
   - Now case-insensitive by default.
   - Added intuitive syntax for rules (e.g., `input(..., yes="green", no="red")`).
 - **Short & Super-Short Aliases**: Added a comprehensive set of aliases for all major components to speed up development (e.g., `prog`, `me`, `pn`, `pr`).

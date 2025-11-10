@@ -1,329 +1,253 @@
-# `colrs` 🎨
+# colrs - The Ultimate Python Library for Rich CLI Interfaces 🎨
 
-**A Python library for creating beautiful, interactive, and powerful terminal applications with radical simplicity.**
+[![PyPI version](https://badge.fury.io/py/colrs.svg)](https://badge.fury.io/py/colrs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[!License: MIT](https://opensource.org/licenses/MIT)
-[!PyPI version](https://badge.fury.io/py/colrs)
+`colrs` is a powerful, intuitive, and elegant Python library for creating beautiful and interactive command-line interfaces. It transforms your terminal from a simple text display into a rich, dynamic application canvas.
 
-`colrs` is more than just a coloring library. It's a full toolkit for building modern command-line interfaces. It takes a unique approach: instead of forcing you to learn new functions for everything, you activate it once, and your standard `print` and `input` functions become color-aware and super-powered.
+Forget juggling ANSI codes. `colrs` offers a high-level, component-based approach with a unique activation model, making rich CLI styling effortless and fun.
 
----
+![colrs in action](https://raw.githubusercontent.com/HussainAlkhatib/colrs/main/media/show.gif) 
+*(This GIF showcases the power of `colrs`. It's highly recommended to include one!)*
 
-## Philosophy
+## 🚀 Core Philosophy: `act()` and `unact()`
 
-The core idea is **absolute simplicity**. Activate the magic, write your code as you normally would, and let `colrs` handle the complexity.
+The magic of `colrs` lies in its activation model. Instead of wrapping every print statement, you activate styling for a section of your code.
 
--   **Activate:** `act()`
--   **Use `print` and `input` normally:** Add colors with tags or keyword arguments.
--   **Build UIs:** Use powerful components like `loading`, `progress`, `table`, `menu`, and `Live` displays.
--   **Deactivate:** `unact()`
-
-## Installation
-
-Install from PyPI using pip. `colorama` is the only dependency and is installed automatically.
-
-```bash
-pip install colrs
-```
-
-## Core Concept: `act()` and `unact()`
-
-This is the heart of the library. Wrap the interactive part of your application within `act()` and `unact()` to enable all features.
+- **`act()`**: Monkey-patches `print()` and `input()`. All subsequent calls are super-powered, understanding HTML-like tags (`<green>Hello</>`), color arguments, and more.
+- **`unact()`**: Restores the original `print` and `input` functions, returning to default behavior.
 
 ```python
 from colrs import act, unact
 
-print("This is a normal, default print.")
+print("This is a normal print.")
 
-# Activate the magic
 act()
-
-print("This print is now <green>super-powered</>!", color="cyan")
+print("This print is now <green>super-powered</>")
 name = input("What's your name? ", color="yellow", inp_color="magenta")
-print(f"Hello, <bold>{name}</>!")
-
-# Deactivate to return to normal
+print(f"Hello, <bold>{name}</>")
 unact()
 
 print("And we're back to normal.")
 ```
 
+## 📦 Installation
+
+```bash
+pip install colrs
+```
+
+## ✨ Features Overview
+
+`colrs` is more than just colors. It's a complete toolkit for modern CLI development.
+
+| Feature | Description | Quick Example |
+|---|---|---|
+| **Enhanced `print`** | Use inline tags for nested, multi-color styling. | `print("<yellow>Warning: <blue>service</blue> is down.</>")` |
+| **Smart `input`** | Style prompts, user input, and apply colors based on rules. | `input("Delete?", yes="red", no="green")` |
+| **Panels** | Draw attention with clean, customizable bordered boxes. | `Panel("Success!", title="Status", border_color="green")` |
+| **Tables** | Display data in beautifully formatted, color-aware tables. | `table(headers, data, header_color="white,bg_cyan")` |
+| **Menus & Checkboxes** | Create interactive single and multi-choice prompts. | `action = menu(choices=["View", "Exit"])` |
+| **Animations** | Provide feedback with spinners and context managers. | `with loading(text="Syncing..."): ...` |
+| **Progress Bars** | Wrap any iterable to show a smooth progress bar. | `for i in prog(range(100)): ...` |
+| **Text Effects** | Add flair with `typewriter`, `rainbow`, and `gradient` effects. | `effects.gradient("Hello", "blue", "magenta")` |
+| **Live Displays** | Update multiple sections of the screen in real-time. | `with Live() as live: live.update(...)` |
+| **Layouts** | Build complex, live-updating dashboards with rows and columns. | `layout.split_column(left_panel, right_panel)` |
+| **Theming** | Define a central color palette for all components. | `set_theme({"primary": "blue", "border": "grey"})` |
+| **Async Support** | `async/await` versions of animations and live displays. | `async with aloading(): ...` |
+
 ---
 
-## Features
+## 🌟 In-Depth Examples
 
-### 1. Enhanced `print()`
+### 1. The Power of Nested Tags
 
-Once `act()` is called, `print()` understands inline color tags and keyword arguments.
+`colrs` intelligently handles nested tags. The inner color is applied, and when the tag closes, it correctly reverts to the parent tag's color.
 
 ```python
-from colrs import act, unact
-
 act()
-# Keyword arguments
-print("This is red.", color="red")
-print("This is blue on a yellow background.", color="blue", bg_color="yellow")
+# The word "service" will be blue, and the rest of the warning yellow.
+print("<yellow>Warning: The <blue>database service</blue> is currently offline.</>")
 
-# Inline tags (close with matching tag or generic </>)
-print("This is a <green>green text</> using inline tags.")
-print("<yellow>This is yellow with <blue>blue text</blue> inside.</yellow>")
-print("<white,bg_red> White text on a red background. </>")
+# You can combine foreground and background colors.
+print("<white,bg_red> EMERGENCY </> All systems are down!")
 unact()
 ```
 
-### 2. Smart `input()`
+### 2. Smart `input()` with Color Rules
 
-The patched `input()` can color the prompt, the user's text, and even react to what the user types with `color_rules`.
+Style your prompts and user input separately. The `color_rules` feature (or keyword arguments) provides instant visual feedback after the user presses Enter.
 
 ```python
-from colrs import act, unact
-
 act()
-# Color the prompt and the user's typing
-username = input("Username: ", color="yellow", inp_color="cyan")
-
-# Use rules to color the input *after* submission for feedback
+# Use kwargs for intuitive rule-setting
 choice = input(
     "Delete all files? (yes/no): ",
-    color="cyan",
-    color_rules={"yes": "red,bg_white", "no": "green"}
+    color="cyan",          # Color of the prompt text
+    inp_color="white",     # Color for user typing
+    yes="red,bg_white",    # Color to apply if user types "yes"
+    no="green"             # Color to apply if user types "no"
 )
 unact()
 ```
 
-### 3. Loading Animations & Progress Bars
+### 3. Advanced Components
 
-Show activity with `loading()` for unknown durations or `prog()` for loops.
-
-```python
-from colrs import act, unact, loading, prog
-import time
-
-act()
-
-# For tasks with a known duration
-loading(duration=3, text="Syncing data...", style=7)
-
-# For tasks with an unknown duration, use a 'with' block
-with loading(text="Connecting to API...", style=2) as loader:
-    time.sleep(2)
-    loader.update("Downloading files...") # Update text on the fly
-    time.sleep(2)
-
-# For iterating over a sequence, use the progress bar
-for item in prog(range(200), description="<cyan>Processing items...</>"):
-    time.sleep(0.02)
-
-unact()
-```
-
-### 4. Data Tables
-
-Display data in a clean, formatted table that automatically calculates column widths and understands color tags.
+#### Panels & Tables
+Display information cleanly. All components are aware of color tags and calculate layout dimensions correctly.
 
 ```python
-from colrs import act, unact, table
+from colrs import Panel, table, act
 
 act()
-headers = ["ID", "User", "Status", "Last Login"]
+Panel(
+    "User <green>'Hussain'</> created successfully.\nAn activation email has been sent.",
+    title="<white,bg_green> Success </>",
+    border_color="green"
+)
+
+headers = ["ID", "User", "Status"]
 data = [
-    ["101", "Hussain", "<green>Active</>", "2023-10-27 10:00"],
-    ["102", "Ali", "<yellow>Idle</>", "2023-10-27 09:15"],
-    ["104", "Zainab", "<red>Banned</>", "2023-10-26 15:30"]
+    ["101", "Hussain", "<green>Active</>"],
+    ["102", "Ali", "<yellow>Idle</>"],
+    ["104", "Zainab", "<red>Banned</>"]
 ]
 table(headers, data, border_color="cyan", header_color="white,bg_cyan")
 unact()
 ```
 
-### 5. Interactive Menus
-
-Prompt users with interactive menus for single or multiple selections.
+#### Interactive Menus & Checkboxes
+Guide users with interactive prompts.
 
 ```python
-from colrs import act, unact, menu, check
+from colrs import menu, check, act
 
 act()
-# Single-choice menu
+# Single-choice menu (navigated with arrow keys)
 action = menu(
     title="<yellow>What do you want to do?</yellow>",
-    choices=["Restart Service", "View Logs", "Exit"]
+    choices=["Restart Service", "View Logs", "Exit"],
+    selected_prefix="-> "
 )
-print(f"You chose: <green>{action}</green>")
 
-# Multi-choice checkbox menu
+# Multi-choice checkbox (toggled with spacebar)
 features = check(
     title="<cyan>Select features to install:</cyan>",
-    choices=["API", "Database", "Web UI", "Docs"]
+    choices=["API", "Database", "Web UI"],
+    cursor=">",
+    checked_char="[x]",
+    unchecked_char="[ ]"
 )
-print(f"Installing: <green>{', '.join(features)}</green>")
 unact()
 ```
 
-### 6. Live Displays & Layouts
+### 4. Dynamic Effects & Animations
 
-Create complex, live-updating dashboards by dividing the terminal into a grid.
-
-```python
-from colrs import act, unact, Layout, table
-import time, random
-
-act()
-layout = Layout()
-layout.split_column(Layout(name="left", ratio=4), Layout(name="right", ratio=6))
-layout["right"].split_row(Layout(name="header"), Layout(name="stats", ratio=3))
-
-with layout.live(refresh_rate=1):
-    layout["header"].update("<bg_magenta,white> Real-time System Dashboard </>")
-    for i in range(5):
-        # Update left panel with a table
-        data = [["Task A", f"<green>OK</>"], ["Task B", f"<yellow>WARN</>"]]
-        layout["left"].update(table(headers=["Service", "Status"], data=data, to_string=True))
-        
-        # Update stats panel
-        cpu = random.randint(20, 90)
-        layout["stats"].update(f"CPU: <cyan>{cpu}%</> | Cycle: {i+1}")
-        time.sleep(1)
-unact()
-```
-
-### 7. Colored Logging
-
-Integrate with Python's standard `logging` module to automatically color your logs based on level.
+#### Progress Bars & Loaders
+Provide rich feedback for tasks. `loading` can be a blocking call (`duration=...`) or a context manager.
 
 ```python
-import logging
-from colrs import act, unact, LogHandler
-
-act()
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(LogHandler()) # Just add our handler
-
-logger.debug("This is a debug message.")
-logger.info("System startup successful.")
-logger.warning("Disk space is running low.")
-logger.error("Failed to connect to the database.")
-logger.critical("Core service has crashed!")
-unact()
-```
-
-### 8. Async Support
-
-For modern `asyncio` applications, `colrs` provides non-blocking, asynchronous versions of its live components.
-
-```python
-import asyncio
-from colrs import act, unact, aloading, aLive
-
-async def main():
-    act()
-    async with aloading(text="Doing async work...", style=6):
-        await asyncio.sleep(3)
-    
-    async with aLive() as live:
-        for i in range(5):
-            live.update(f"Async Counter: <green>{i}</green>")
-            await asyncio.sleep(1)
-    unact()
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-### 9. Theming System
-
-Customize the look and feel of your entire application from one central place. Define a theme dictionary and apply it with `set_theme()`. All components will automatically adapt.
-
-```python
-from colrs import act, unact, set_theme, Panel, menu
-
-act()
-
-# Define a custom "fire" theme
-fire_theme = {
-    "primary": "orange",
-    "border": "red",
-    "menu_selected": "yellow",
-    "panel_title_bg": "red"
-}
-
-# Apply it globally
-set_theme(fire_theme)
-
-# All subsequent components will use the new theme automatically!
-Panel("This panel will now have a red border.", title="Fire Theme")
-choice = menu(title="Options", choices=["Option 1", "Option 2"])
-
-unact()
-```
-## 7. Clickable Actions (Mouse Support)
-
-Transform your terminal application into an interactive experience with clickable actions. The `ActionManager` allows you to define functions that are triggered when a user clicks on specific text with their mouse.
-
-**Note:** This feature requires a modern terminal that supports mouse events (e.g., Windows Terminal, GNOME Terminal, iTerm2).
-
-```python
-from colrs import act, unact, ActionManager
 import time
+from colrs import loading, prog, act
 
 act()
+# Context manager for tasks of unknown length
+with loading(text="Connecting to API...", style=7) as loader:
+    time.sleep(2)
+    loader.update("Downloading files...") # Update text on the fly
+    time.sleep(2)
 
-# 1. Define the functions for your actions
-def show_status():
-    return "System status: <green>OK</>. Click <action=shutdown>here</action> to shut down."
-
-def shutdown_system():
-    return "<red,bg_white> SHUTDOWN INITIATED! </>"
-
-# 2. Map action names (from tags) to functions
-actions = { "status": show_status, "shutdown": shutdown_system }
-
-print("Click on the underlined words. This demo will exit in 10 seconds.")
-
-with ActionManager(actions, initial_text="Click <action=status>here</action> to check status."):
-    time.sleep(10) # Keep the manager active to listen for clicks
-
+# Progress bar for any iterable
+for item in prog(range(200), description="<cyan>Processing items...</>"):
+    time.sleep(0.01)
 unact()
 ```
 
-## Shortcuts / Aliases
-
-For faster coding, shorter aliases are available for many features:
-@@ -238,12 +282,27 @@
-| Full Name               | Alias        |
-| ----------------------- | ------------ |
-| `progress`              | `prog`       |
-| `checkbox`              | `check`      |
-| `ColorizingStreamHandler` | `LogHandler` |
-| `ActionTagManager`      | `ActionManager`|
-| `async_loading`         | `aloading`   |
-| `AsyncLive`             | `aLive`      |
-| `checkbox`              | `check`      |
-
-For power users who prefer maximum brevity, even shorter aliases are available:
-
-| Full Name      | Alias |
-| -------------- | ----- |
-| `loading`      | `lo`  |
-| `Live`         | `li`  |
-| `menu`         | `me`  |
-| `table`        | `tb`  |
-| `Panel`        | `pn`  |
-| `progress`     | `pr`  |
-| `checkbox`     | `chk` |
-| `Layout`       | `ly`  |
-| `set_theme`    | `sth` |
-| `get_theme`    | `gth` |
-| `LogHandler`   | `lh`  |
-| `ActionManager`| `am`  |
-
-### Power User Import
-
-For quick access to all short aliases, you can use this import line:
+#### TrueColor Text Effects
+Create stunning text effects using `gradient` (with hex colors), `rainbow`, and `typewriter`.
 
 ```python
-from colrs import act, unact, lo, alo, li, ali, me, chk, tb, pn, pr, sth, gth, ly, lh, am
+from colrs import effects, act
+
+act()
+effects.typewriter("This is a typewriter effect...", speed=0.04, color="green")
+
+effects.gradient(
+    "*** HELLO WORLD ***",
+    start_color="magenta", # Magenta
+    end_color="cyan",   # Cyan
+    duration=5
+)
+unact()
 ```
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+### 5. The Layout Engine: Building Dashboards
+This is one of `colrs`' most powerful features. Create complex, live-updating terminal dashboards by splitting the screen into resizable rows and columns.
+
+```python
+import time
+from colrs import Layout, act
+
+act()
+# Define the layout structure
+layout = Layout()
+layout.split_column(
+    Layout(name="header", ratio=1),
+    Layout(name="main", ratio=5),
+    Layout(name="footer", ratio=1)
+)
+layout["main"].split_row(
+    Layout(name="left_sidebar", ratio=2),
+    Layout(name="content", ratio=8)
+)
+
+# Run the live display
+with layout.live(refresh_rate=0.1) as live_layout:
+    live_layout["header"].update("<white,bg_blue> My Dashboard </>")
+    live_layout["footer"].update("<yellow>Status: OK</>")
+    
+    for i in range(101):
+        # Update different parts of the layout independently
+        live_layout["left_sidebar"].update(f"Progress:\n<cyan>{i}%</>")
+        live_layout["content"].update(f"Event <green>#{i}</> processed.")
+        time.sleep(0.05)
+unact()
+```
+
+## ⚡ Power-User Features
+
+- **Theming**: Use `set_theme({...})` to define a central color palette (`primary`, `border`, `menu_selected`, etc.) that all components will use.
+- **Async Support**: `aloading()` and `aLive()` provide non-blocking, `asyncio`-native versions of animations and live displays.
+
+### Aliases for Power Users
+
+For faster development, `colrs` provides two levels of optional, shorter aliases for most common components.
+
+**Standard Aliases:**
+| Alias | Original |
+|---|---|
+| `LogHandler` | `ColorizingStreamHandler` |
+| `aloading` | `async_loading` |
+| `aLive` | `AsyncLive` |
+| `check` | `checkbox` |
+| `prog` | `progress` |
+
+**Super-Short Aliases:**
+| Alias | Original | Alias | Original |
+|---|---|---|---|
+| `lo` | `loading` | `alo` | `async_loading` |
+| `li` | `Live` | `ali` | `AsyncLive` |
+| `me` | `menu` | `chk` | `checkbox` |
+| `tb` | `table` | `pn` | `Panel` |
+| `pr` | `progress` | `ef` | `effects` |
+| `sth` | `set_theme` | `gth` | `get_theme` |
+| `lh` | `LogHandler` | | |
+
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place. Any contributions you make are **greatly appreciated**. Please feel free to fork the repo, create a feature branch, and submit a pull request.
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.

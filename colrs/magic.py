@@ -31,11 +31,15 @@ def _magic_print(*args, **kwargs):
     # Extract our custom color arguments, removing them from kwargs
     color = kwargs.pop("color", None)
     bg_color = kwargs.pop("bg_color", None)
+    to_string = kwargs.pop("to_string", False)
     
     text = " ".join(map(str, args))
     processed_text = _process_text_for_printing(text, color, bg_color)
     
-    _original_print(processed_text, **kwargs)
+    if to_string:
+        return processed_text
+    else:
+        _original_print(processed_text, **kwargs)
 
 def _magic_input(prompt: str = "", **kwargs) -> str:
     """

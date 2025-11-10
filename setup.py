@@ -25,7 +25,7 @@ setup(
     description='A simple and elegant Python library for terminal text coloring.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/HussainAlkhatib/colrs',
+    url='https://github.com/HussainAlkhatib/colrs', # Placeholder URL
     license_files=('LICENSE',),
     packages=find_packages(),
     install_requires=[

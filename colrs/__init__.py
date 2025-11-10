@@ -1,14 +1,14 @@
-# colorara/colorara/__init__.py
+# colorara/colrs/__init__.py
 
 """
 colrs - A simple and elegant way to color your terminal text.
 """
 
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 
 # Initialize colorama to make ANSI codes work on Windows and to auto-reset colors.
 from colorama import init
-init(autoreset=True)
+init(autoreset=False)
 
 # The public API is now just act() and unact() for maximum simplicity.
 from .magic import act, unact
@@ -20,14 +20,13 @@ from .menus import menu
 from .live import Live
 from .logger import ColorizingStreamHandler
 from .components import checkbox
-from .layout import Layout
-from .actions import ActionTagManager
 from .async_tools import async_loading, AsyncLive
 from .progress import progress
+from . import effects
+
 
 # --- Short Aliases for easier access ---
 LogHandler = ColorizingStreamHandler
-ActionManager = ActionTagManager
 aloading = async_loading
 aLive = AsyncLive
 check = checkbox
@@ -45,9 +44,8 @@ pn = Panel
 pr = progress
 sth = set_theme
 gth = get_theme
-ly = Layout
 lh = LogHandler
-am = ActionManager
+ef = effects
 
 __all__ = [
     'act',
@@ -61,13 +59,12 @@ __all__ = [
     'Live',
     'ColorizingStreamHandler',
     'checkbox',
-    'Layout',
-    'ActionTagManager',
     'async_loading',
     'AsyncLive',
     'progress',
+    'effects',
     # Add aliases to __all__ so they can be imported
-    'LogHandler', 'ActionManager', 'aloading', 'aLive', 'check', 'prog',
+    'LogHandler', 'aloading', 'aLive', 'check', 'prog',
     # Add super short aliases to __all__
-    'lo', 'alo', 'li', 'ali', 'me', 'chk', 'tb', 'pn', 'pr', 'sth', 'gth', 'ly', 'lh', 'am'
+    'lo', 'alo', 'li', 'ali', 'me', 'chk', 'tb', 'pn', 'pr', 'sth', 'gth', 'lh', 'ef'
 ]

@@ -12,8 +12,8 @@ import asyncio
 
 # Import all the necessary components from the library
 from colrs import (
-    act, unact, loading, prog, table, menu, check, Layout, LogHandler,
-    aloading, aLive, set_theme, Panel, ActionManager
+    act, unact, loading, prog, table, menu, check, LogHandler,
+    aloading, aLive, set_theme, Panel, effects
 )
 
 def wait_for_enter():
@@ -110,23 +110,6 @@ def example_menus():
     print(f"Installing: <green>{', '.join(features)}</green>")
     unact()
 
-def example_layout():
-    """Demonstrates live layouts."""
-    print("\n--- 8. Live Displays & Layouts ---")
-    act()
-    layout = Layout()
-    layout.split_column(Layout(name="left", ratio=4), Layout(name="right", ratio=6))
-    layout["right"].split_row(Layout(name="header"), Layout(name="stats", ratio=3))
-    with layout.live(refresh_rate=1):
-        layout["header"].update("<bg_magenta,white> Real-time System Dashboard </>")
-        for i in range(5):
-            data = [["Task A", f"<green>OK</>"], ["Task B", f"<yellow>WARN</>"]]
-            layout["left"].update(table(headers=["Service", "Status"], data=data, to_string=True))
-            cpu = random.randint(20, 90)
-            layout["stats"].update(f"CPU: <cyan>{cpu}%</> | Cycle: {i+1}")
-            time.sleep(1)
-    unact()
-
 def example_logging():
     """Demonstrates colored logging."""
     print("\n--- 9. Colored Logging ---")
@@ -168,24 +151,22 @@ def example_theming():
     set_theme({"primary": "cyan", "border": "white", "menu_selected": "cyan", "panel_title_bg": "cyan"})
     unact()
 
-def example_action_tags():
-    """Demonstrates the clickable ActionTagManager."""
-    print("\n--- 12. Clickable Actions (Mouse Support) ---")
+def example_effects():
+    """Demonstrates the new text effects."""
+    print("\n--- 12. Text Effects ---")
     act()
-
-    def show_status():
-        return "System status: <green>OK</>. Click <action=shutdown>here</action> to shut down."
-
-    def shutdown_system():
-        return "<red,bg_white> SHUTDOWN INITIATED! </>"
-
-    actions = { "status": show_status, "shutdown": shutdown_system }
-
-    print("Click on the underlined words with your mouse.")
-    print("This demo will automatically exit after 15 seconds.")
-
-    with ActionManager(actions, initial_text="Click <action=status>here</action> to check system status."):
-        time.sleep(15)
+    print("<yellow>--- Typewriter Effect ---</yellow>")
+    effects.typewriter(
+        "This is the new, powerful, and simple text effects engine!",
+        speed=0.05,
+        color="green"
+    )
+    print("\n<yellow>--- Rainbow Effect ---</yellow>")
+    effects.rainbow(
+        "*** RAINBOW POWER ***",
+        speed=0.1,
+        duration=5
+    )
     unact()
 
 if __name__ == "__main__":
@@ -196,9 +177,8 @@ if __name__ == "__main__":
     example_animations(); wait_for_enter()
     example_tables(); wait_for_enter()
     example_menus(); wait_for_enter()
-    example_layout(); wait_for_enter()
     example_logging(); wait_for_enter()
     asyncio.run(example_async_support()); wait_for_enter()
-    example_theming()
-    example_action_tags() # This is the last example, no need for wait_for_enter()
+    example_theming(); wait_for_enter()
+    example_effects()
     act(); print("\n<green,bg_black> All examples finished. </>"); unact()

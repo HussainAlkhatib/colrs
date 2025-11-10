@@ -7,6 +7,7 @@ colrs/animations.py
 colrs/async_tools.py
 colrs/components.py
 colrs/core.py
+colrs/effects.py
 colrs/layout.py
 colrs/live.py
 colrs/logger.py
@@ -14,6 +15,7 @@ colrs/magic.py
 colrs/menus.py
 colrs/panel.py
 colrs/progress.py
+colrs/shapes.py
 colrs/style_1.py
 colrs/style_10.py
 colrs/style_2.py
