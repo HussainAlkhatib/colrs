@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - Upcoming
 
 ### Added
-- **`colrs_showcase.py`**: Added a monolithic showcase script demonstrating all features logically and beautifully.
+- **`test.py`**: Added a monolithic showcase script demonstrating all features logically and beautifully.
 - **Improved API Stability**: Enhanced internal components to deal correctly with missing configurations.
 
 ### Changed
