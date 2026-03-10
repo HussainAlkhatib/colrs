@@ -50,6 +50,11 @@ def move_up(lines):
     sys.stdout.write(f"\033[{lines}F")
     sys.stdout.flush()
 
+def move_down(lines):
+    if lines > 0:
+        sys.stdout.write(f"\033[{lines}B")
+        sys.stdout.flush()
+
 def clear_line():
     sys.stdout.write("\033[K")
     sys.stdout.flush()

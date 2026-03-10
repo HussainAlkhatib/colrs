@@ -1,6 +1,6 @@
 # colorara/colrs/panel.py
 
-from .core import _strip_all_tags, _process_text_for_printing
+from .core import _strip_all_tags, _process_text_for_printing, cprint
 from .theme import get_theme
 
 def Panel(
@@ -20,7 +20,9 @@ def Panel(
     theme = get_theme()
     border_color = border_color or theme.get("border", "white")
 
-    lines = content.split('\n')
+    # Process tags BEFORE splitting, because tags can span multiple lines!
+    processed_content = _process_text_for_printing(content)
+    lines = processed_content.split('\n')
     
     # Calculate width if not provided
     if width == 0:
@@ -32,15 +34,15 @@ def Panel(
     if title:
         clean_title = _strip_all_tags(title)
         title_bar = f"┤ {_process_text_for_printing(title)} ├{'─' * (width - len(clean_title) - 6)}"
-        print(f"<{border_color}>┌─{title_bar}┐</>")
+        cprint(f"<{border_color}>┌─{title_bar}┐</>")
     else:
-        print(f"<{border_color}>┌{'─' * (width - 2)}┐</>")
+        cprint(f"<{border_color}>┌{'─' * (width - 2)}┐</>")
 
     # Content lines
     for line in lines:
         clean_line_len = len(_strip_all_tags(line))
-        padding = ' ' * (width - clean_line_len - 4)
-        print(f"<{border_color}>│</> {_process_text_for_printing(line)}{padding} <{border_color}>│</>")
+        padding = ' ' * max(0, width - clean_line_len - 4)
+        cprint(f"<{border_color}>│</> {line}{padding} <{border_color}>│</>")
 
     # Bottom border
-    print(f"<{border_color}>└{'─' * (width - 2)}┘</>")
+    cprint(f"<{border_color}>└{'─' * (width - 2)}┘</>")

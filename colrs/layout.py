@@ -115,6 +115,17 @@ class _LiveLayoutManager:
     def start(self):
         from .menus import hide_cursor
         hide_cursor()
+        
+        width, height = os.get_terminal_size()
+        content_map = self.layout._render(0, 0, width, height)
+        max_y = max((y for _, y in content_map.keys()), default=0)
+        
+        self._rendered_height = max_y + 1
+        
+        # Print enough blank lines to scroll the terminal down, reserving our block
+        sys.stdout.write('\n' * self._rendered_height)
+        sys.stdout.flush()
+        
         self._thread = threading.Thread(target=self._render_loop, daemon=True)
         self._thread.start()
 
@@ -126,6 +137,9 @@ class _LiveLayoutManager:
         
         # Do a final render
         self._render_frame()
+        from .menus import move_down
+        # Move cursor below the layout cleanly 
+        move_down(self._rendered_height)
         sys.stdout.write('\n')
         show_cursor()
 
@@ -135,23 +149,19 @@ class _LiveLayoutManager:
             time.sleep(self.refresh_rate)
 
     def _render_frame(self):
-        from .menus import move_up
-        if self._lines_rendered > 0:
-            move_up(self._lines_rendered)
+        from .menus import move_up, clear_line
+        from .core import _strip_all_tags
+        
+        move_up(self._rendered_height)
 
         width, height = os.get_terminal_size()
         
         # Get a map of (x, y) -> line content
         content_map = self.layout._render(0, 0, width, height)
         
-        # Clear the old content area
-        sys.stdout.write("\033[J")
-
         # Build the final screen buffer
         screen_buffer = []
-        max_y = 0
-        if content_map:
-            max_y = max(y for _, y in content_map.keys())
+        max_y = max((y for _, y in content_map.keys()), default=0)
 
         for y in range(max_y + 1):
             line = ""
@@ -160,12 +170,20 @@ class _LiveLayoutManager:
             
             current_x = 0
             for x, content in line_segments:
-                padding = " " * (x - current_x)
+                padding = " " * max(0, x - current_x)
                 line += padding + content
-                current_x = x + len(content) # A simplification, doesn't account for ANSI codes in len
-            screen_buffer.append(line)
+                current_x = x + len(_strip_all_tags(content))
+            
+            # Pad the rest of the line with spaces to overwrite any old characters
+            # and use clear_line just in case
+            screen_buffer.append(f"\033[K{line}")
+
+        # Update height if the layout grew
+        if max_y + 1 > self._rendered_height:
+            sys.stdout.write('\n' * ((max_y + 1) - self._rendered_height))
+            move_up((max_y + 1) - self._rendered_height)
+            self._rendered_height = max_y + 1
 
         final_output = "\n".join(screen_buffer)
-        sys.stdout.write(final_output)
+        sys.stdout.write(final_output + "\n")
         sys.stdout.flush()
-        self._lines_rendered = final_output.count('\n') + 1

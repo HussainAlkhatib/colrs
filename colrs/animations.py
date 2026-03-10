@@ -101,3 +101,11 @@ def loading_legacy(style=1, duration=3, text="Loading...", color="yellow", bf_te
     :param af_text: Text to display upon completion.
     :param end_color: The color of the completion text.
     """
+    if duration is not None:
+        try:
+            _run_fixed_duration_loading(style, duration, text, color, bf_text, af_text, end_color)
+        except Exception as e:
+            sys.stdout.write('\r' + ' ' * 80 + '\r')
+            print(f"<red>An error occurred during animation: {e}</red>")
+    else:
+        return _loading_context_manager(style, text, color, af_text, end_color)

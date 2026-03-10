@@ -22,6 +22,7 @@ from .logger import ColorizingStreamHandler
 from .components import checkbox
 from .async_tools import async_loading, AsyncLive
 from .progress import progress
+from .layout import Layout
 from . import effects
 
 
@@ -63,6 +64,7 @@ __all__ = [
     'AsyncLive',
     'progress',
     'effects',
+    'Layout',
     # Add aliases to __all__ so they can be imported
     'LogHandler', 'aloading', 'aLive', 'check', 'prog',
     # Add super short aliases to __all__

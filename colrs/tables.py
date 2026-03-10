@@ -35,14 +35,14 @@ def table(headers: list, data: list[list], border_color: str = "white", header_c
 
     # --- Drawing functions ---
     def _draw_separator(char_left, char_mid, char_right):
-        parts = [char_left]
+        parts = []
         for width in col_widths:
             parts.append('─' * (width + 2))
-        separator = char_mid.join(parts) + char_right
+        separator = char_left + char_mid.join(parts) + char_right
         output_lines.append(f"<{border_color}>{separator}</>")
 
     def _draw_row(row_data, is_header=False):
-        parts = [f"<{border_color}>│</>"]
+        parts = []
         for i, cell in enumerate(row_data):
             clean_cell_len = len(_strip_tags(cell))
             padding = ' ' * (col_widths[i] - clean_cell_len)
@@ -54,7 +54,7 @@ def table(headers: list, data: list[list], border_color: str = "white", header_c
                 cell_content = f" {cell}{padding} "
             parts.append(cell_content)
 
-        row_str = f"<{border_color}>│</>{f'<{border_color}>│</>'.join(parts)}"
+        row_str = f"<{border_color}>│</>{f'<{border_color}>│</>'.join(parts)}<{border_color}>│</>"
         output_lines.append(row_str)
 
     # --- Build the table ---

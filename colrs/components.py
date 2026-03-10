@@ -1,7 +1,9 @@
 # colorara/colrs/components.py
 
 import sys
+import builtins
 from .menus import get_key, hide_cursor, show_cursor, move_up, clear_line
+from .core import _process_text_for_printing
 
 def checkbox(
     title: str, 
@@ -9,14 +11,16 @@ def checkbox(
     cursor_color: str = "cyan", 
     selected_color: str = "green",
     cursor: str = ">",
-    checked_char: str = "✔",
-    unchecked_char: str = " "
+    checked_char: str = "✓",
+    unchecked_char: str = " ",
+    check_emoji: str = None
 ) -> list[str]:
     """
     Displays an interactive checkbox menu and returns a list of selected choices.
     
     - Use arrow keys (Up/Down) to navigate.
     - Use Spacebar to toggle a selection.
+    - Use Delete key to explicitly remove a selection.
     - Use Enter to confirm.
     """
     selected_states = [False] * len(choices)
@@ -26,7 +30,7 @@ def checkbox(
     try:
         while True:
             # Print the title
-            print(title)
+            builtins.print(_process_text_for_printing(title))
             
             # Print the choices
             for i, choice in enumerate(choices):
@@ -35,10 +39,17 @@ def checkbox(
 
                 # Determine prefix and color
                 prefix = f"<{cursor_color}>{cursor}</> " if is_cursor_on else "  "
-                check_box = f"[<{selected_color}>{checked_char if is_selected else unchecked_char}</>]"
+                
+                # Use emoji if provided and checked, otherwise use checked_char
+                if is_selected and check_emoji:
+                    check_char_to_use = check_emoji
+                else:
+                    check_char_to_use = checked_char if is_selected else unchecked_char
+                    
+                check_box = f"[<{selected_color}>{check_char_to_use}</>]"
                 
                 line = f"{prefix}{check_box} {choice}"
-                print(line)
+                builtins.print(_process_text_for_printing(line))
 
             # Wait for a key press
             key = get_key()
@@ -50,6 +61,8 @@ def checkbox(
                 current_index = (current_index + 1) % len(choices)
             elif key == b' ': # Spacebar
                 selected_states[current_index] = not selected_states[current_index]
+            elif key in [b'S', b'3']: # Delete Key (Windows 'S' after e0, Unix '3' after \x1b[)
+                selected_states[current_index] = False
             elif key == b'\r': # Enter key
                 # Clear the menu from the screen
                 move_up(len(choices) + 1)

@@ -92,9 +92,12 @@ def _process_text_for_printing(text: str, color: str = None, bg_color: str = Non
     
     return "".join(parts)
 def _strip_all_tags(text: str) -> str:
-    """Strips all tags (color and action) for length calculation."""
-    # A simple regex to remove all tags for length calculation.
-    return re.sub(r"<[^>]+>", "", text)
+    """Strips all tags (color and action) and ANSI codes for length calculation."""
+    # First remove colrs tags
+    text = re.sub(r"<[^>]+>", "", text)
+    # Then remove ANSI escape codes \033[...m
+    text = re.sub(r'\033\[[0-9;]*m', '', text)
+    return text
 
 def _find_actions(text: str) -> list[tuple[str, str]]:
     """Finds all action tags and their content in a string."""
